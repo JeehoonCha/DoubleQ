@@ -65,6 +65,7 @@ public class StateUtil {
     	   System.out.println(" Game score is unavailable "); 	   
 		return score;
 	}
+
 	/**
 	 * The method checks the score every second, and return when the score is stable (not flashing).
 	 * 
@@ -83,7 +84,7 @@ public class StateUtil {
 			
 				e.printStackTrace();
 			}
-		   if(getGameState(proxy) == GameState.WON)
+		   if(getGameState(proxy) == GameState.WON || getGameState(proxy) == GameState.PLAYING)
 		   {	
 			   current_score = _getScore(proxy);
 		   }
