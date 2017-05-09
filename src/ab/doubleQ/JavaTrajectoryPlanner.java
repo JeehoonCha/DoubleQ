@@ -13,11 +13,11 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-/* RandomTrajectorySelector ------------------------------------------------------ */
+/* JavaTrajectoryPlanner ------------------------------------------------------ */
 
 
 @SuppressWarnings("ALL")
-public class RandomTrajectorySelector {
+public class JavaTrajectoryPlanner {
     private static double X_OFFSET = 0.5;
     private static double Y_OFFSET = 0.65;
     private static double BOUND = 0.1;
@@ -51,7 +51,7 @@ public class RandomTrajectorySelector {
     private double _scale;
 
     // create a trajectory planner object
-    public RandomTrajectorySelector() {
+    public JavaTrajectoryPlanner() {
     
     }
 
@@ -254,7 +254,7 @@ public class RandomTrajectorySelector {
         double mag = getSceneScale(sling) * STRETCH * v;
         Point ref = getReferencePoint(sling);
         Point release = new Point((int)(ref.x - mag * Math.cos(theta)), (int)(ref.y + mag * Math.sin(theta)));
-        
+
         return release;
     }
     

@@ -40,7 +40,6 @@ public class JavaShootingAgent {
         private List<Action> actionSequence;
 
         public State(Action... actions) {
-//            actionSequence = Collections.emptyList();
             actionSequence = new ArrayList<Action>();
             for (Action action : actions) {
                 actionSequence.add(action);

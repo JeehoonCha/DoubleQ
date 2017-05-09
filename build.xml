@@ -5,7 +5,7 @@
 
     <path id="classpath">
         <fileset dir="${lib.dir}" includes="**/*.jar"/>
-    </path>    
+    </path>
     <target name="clean">
         <delete dir="src" includes = "**/*.class"/>
     </target>
@@ -19,13 +19,18 @@
     <target name="jar">
         <jar destfile="ABSoftware.jar">
             <manifest>
-                <attribute name="Main-Class" value="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader"/>
-                <attribute name="Rsrc-Main-Class" value="ab.demo.MainEntry"/>
-                <attribute name="Class-Path" value="."/>
-                <attribute name="Rsrc-Class-Path" value="./ Jama-1.0.2.jar json-simple-1.1.1.jar WebSocket.jar commons-codec-1.7.jar"/>
+                <attribute name="Main-Class"      value="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader"/>
+                <attribute name="Rsrc-Main-Class" value="ab.doubleQ.JavaMainEntry"/>
+                <attribute name="Class-Path"      value="."/>
+                <attribute name="Rsrc-Class-Path" value="./ py4j0.10.4.jar
+                                                        Jama-1.0.2.jar
+                                                        json-simple-1.1.1.jar
+                                                        WebSocket.jar
+                                                        commons-codec-1.7.jar"/>
             </manifest>
             <zipfileset src="external/jar-in-jar-loader.zip"/>
             <fileset dir="src/"/>
+            <zipfileset dir="external" includes="py4j0.10.4.jar"/>
             <zipfileset dir="external" includes="Jama-1.0.2.jar"/>
             <zipfileset dir="external" includes="json-simple-1.1.1.jar"/>
             <zipfileset dir="external" includes="WebSocket.jar"/>

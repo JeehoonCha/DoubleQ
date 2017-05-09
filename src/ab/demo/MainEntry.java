@@ -1,6 +1,5 @@
 package ab.demo;
 
-import ab.doubleQ.DataCollectingAgent;
 import ab.planner.abTrajectory;
 import ab.utils.GameImageRecorder;
 import ab.vision.ShowSeg;
@@ -18,17 +17,12 @@ public class MainEntry {
 	// the entry of the software.
 	public static void main(String args[])
 	{
-		System.out.println("Test");
 		String command = "";
 		if(args.length > 0)
 		{
 			command = args[0];
-			if (args.length == 1 && command.equalsIgnoreCase("-dca")) {
-				DataCollectingAgent dca = new DataCollectingAgent();
-				dca.run();
-			}
 
-			else if (args.length == 1 && command.equalsIgnoreCase("-na"))
+			if (args.length == 1 && command.equalsIgnoreCase("-na"))
 			{
 				NaiveAgent na = new NaiveAgent();
 				na.run();
