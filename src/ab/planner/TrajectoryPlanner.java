@@ -16,7 +16,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
-/* TrajectoryPlanner ------------------------------------------------------ */
+/* JavaTrajectoryPlanner ------------------------------------------------------ */
 
 
 public class TrajectoryPlanner {
