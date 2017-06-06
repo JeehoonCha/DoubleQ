@@ -153,6 +153,8 @@ public class ActionRobot {
 
 			e.printStackTrace();
 		}
+		System.out.println("ActionRobot.java:sleep...done.");
+		
 	}
 
 	public void cFastshoot(Shot shot) {

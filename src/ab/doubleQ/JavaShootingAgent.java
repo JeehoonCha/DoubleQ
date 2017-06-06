@@ -6,6 +6,7 @@ import ab.utils.StateUtil;
 import ab.vision.ABType;
 import ab.vision.GameStateExtractor;
 import ab.vision.Vision;
+import ab.vision.GameStateExtractor.GameState; // added by haeyong.k
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -33,13 +34,15 @@ public class JavaShootingAgent {
     private int initNumBlocks;
     private int initScreenSize;
 
+    //public GameState game_state;
+
     // a standalone implementation of the Naive Agent
     public JavaShootingAgent() {
         actionRobot = new ActionRobot();
         trajectoryPlanner = new JavaTrajectoryPlanner();
         prevScore = 0;
         prevState = new State();
-        // --- go to the Poached Eggs episode level selection page ---
+        // << go to the Poached Eggs episode level selection page >>
         ActionRobot.GoFromMainMenuToLevelSelection();
     }
 
@@ -79,22 +82,23 @@ public class JavaShootingAgent {
     }
 
     public class Observation implements Serializable {
-//        private State state;
+        private State state;
         private byte[] screen;
         private int reward;
         private Action action;
         private boolean terminal;
 
-        public Observation(byte[] screen, int reward, Action action, boolean terminal) {
-//            this.state = state;
+        //public Observation(State state, byte[] screen, int reward, Action action, boolean terminal) {
+	public Observation(byte[] screen, int reward, Action action, boolean terminal) {
+            this.state = state;
             this.screen = screen;
             this.reward = reward;
             this.action = action;
             this.terminal = terminal;
         }
-//        public State getState() {
-//            return state;
-//        }
+        public State getState() {
+            return state;
+        }
         public byte[] getScreen() {
             return screen;
         }
@@ -169,23 +173,40 @@ public class JavaShootingAgent {
 
         int curScore = StateUtil.getScore(ActionRobot.proxy);
         int reward = curScore - prevScore;
+	//System.out.println(String.format("curScore=%d",curScore));
+	//System.out.println(String.format("prevScore=%d", prevScore));
+	//System.out.println(String.format("reward=%d", reward));
+	
         prevScore = curScore;
 
         int numPigs = getNumPigs();
         int numBirds = getNumBirds();
-        boolean isTerminal = (numPigs == 0) || (numBirds == 0);
-        System.out.println(String.format("isTerminal=%s",isTerminal));
+        boolean isTerminal = (numPigs == 0) || (numBirds == 0) ;
+	//boolean isTerminal = (numPigs == 0) || (numBirds == 0) || (actionRobot.getState() == GameStateExtractor.GameState.WON);
 
+	//State state = actionRobot.getState();
         Action curAction = new Action(angle, power, tabInterval);
-        Observation observation = new Observation(getScreen(), reward, curAction, isTerminal);
+        //Observation observation = new Observation(getScreen(), reward, curAction, isTerminal);
+	
+	//State state = new State(prevState.getActionSequence().toArray(actions));
+	//Observation observation = new Observation(state,getScreen(), reward, curAction, isTerminal);
+	Observation observation = new Observation(getScreen(), reward, curAction, isTerminal);
 
+	boolean isStateGame = (actionRobot.getState() == GameState.WON);
+        System.out.println(String.format("isTerminal=%s",isTerminal));
+	
+	//System.out.println(String.format("isStateGame=%s", isStateGame));
+	System.out.println(actionRobot.getState());
+	
+	curScore = StateUtil.getScore(ActionRobot.proxy);
+	System.out.println(String.format("curScore=%d",curScore));
+		
         if (reward > 0) {
             Action[] actions = new Action[prevState.getActionSequence().size()];
             State curState = new State(prevState.getActionSequence().toArray(actions));
             curState.getActionSequence().add(curAction);
             prevState = curState;
         }
-
         return observation;
     }
 
@@ -203,8 +224,6 @@ public class JavaShootingAgent {
         Shot shot = new Shot(refPoint.x, refPoint.y, dx, dy, 0, tabInterval);
         actionRobot.cshoot(shot);
     }
-
-
 
     private int getNumPigs() {
         return new Vision(ActionRobot.doScreenShot()).findPigsMBR().size();

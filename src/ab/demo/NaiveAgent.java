@@ -100,7 +100,7 @@ public class NaiveAgent implements Runnable {
 				ActionRobot.GoFromMainMenuToLevelSelection();
 				aRobot.loadLevel(currentLevel);
 			}
-
+			System.out.println(state);
 		}
 
 	}
