@@ -2,7 +2,9 @@ package ab.doubleQ;
 
 import ab.demo.other.ActionRobot;
 import ab.demo.other.Shot;
+import ab.planner.TrajectoryPlanner;
 import ab.utils.StateUtil;
+import ab.vision.ABObject;
 import ab.vision.ABType;
 import ab.vision.GameStateExtractor;
 import ab.vision.Vision;
@@ -34,6 +36,8 @@ public class JavaShootingAgent {
     private int initNumBlocks;
     private int initScreenSize;
 
+    private TrajectoryPlanner tp;
+    private Random randomGenerator;
     //public GameState game_state;
 
     // a standalone implementation of the Naive Agent
@@ -42,6 +46,9 @@ public class JavaShootingAgent {
         trajectoryPlanner = new JavaTrajectoryPlanner();
         prevScore = 0;
         prevState = new State();
+
+        tp = new TrajectoryPlanner();
+        randomGenerator = new Random();
         // << go to the Poached Eggs episode level selection page >>
         ActionRobot.GoFromMainMenuToLevelSelection();
     }
@@ -211,9 +218,7 @@ public class JavaShootingAgent {
     }
 
     private void cshoot(int angle, int power, int tabInterval) {
-        while (!isReady() || isSlingChanged()) {
-            setReady();
-        }
+        setSlingReady();
         Point releasePoint = trajectoryPlanner.findReleasePoint(
                 sling,
                 angle / (double) 100 * Math.PI / (double) 2,
@@ -226,7 +231,10 @@ public class JavaShootingAgent {
     }
 
     private int getNumPigs() {
-        return new Vision(ActionRobot.doScreenShot()).findPigsMBR().size();
+        return getPigs().size();
+    }
+    private List<ABObject> getPigs() {
+        return new Vision(ActionRobot.doScreenShot()).findPigsMBR();
     }
     public int getNumBirds() {
         return new Vision(ActionRobot.doScreenShot()).findBirdsMBR().size();
@@ -240,5 +248,40 @@ public class JavaShootingAgent {
         }
 
         return byteBuffer.array();
+    }
+
+    class ShootInfo {
+        double angle;
+        double power;
+        public ShootInfo(double angle, double power) {
+            this.angle = angle;
+            this.power = power;
+        }
+        public double getAngle() {
+            return this.angle * 200 / Math.PI;
+        }
+        public double getPower() {
+            return this.power * 100;
+        }
+    }
+
+    public ShootInfo getShootInfo() {
+        setSlingReady();
+        List<ABObject> targetPigs = getPigs();
+        ABObject targetPig = targetPigs.get(randomGenerator.nextInt(targetPigs.size()));
+        Point targetPoint = targetPig.getCenter();
+
+        ArrayList<Point> releasePoints = tp.estimateLaunchPoint(sling, targetPoint);
+        Point releasePoint = releasePoints.get(randomGenerator.nextInt(releasePoints.size()));
+
+        System.out.println("targetPigs.size()=" + targetPigs.size());
+
+        return new ShootInfo(tp.getReleaseAngle(sling, releasePoint),tp.getReleasePower(sling, releasePoint));
+    }
+
+    private void setSlingReady() {
+        while (!isReady() || isSlingChanged()) {
+            setReady();
+        }
     }
 }

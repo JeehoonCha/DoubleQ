@@ -364,8 +364,14 @@ public class TrajectoryPlanner {
     public double getReleaseAngle(Rectangle sling, Point releasePoint )
     {
         Point ref = getReferencePoint(sling);
-        
         return -Math.atan2(ref.y - releasePoint.y, ref.x - releasePoint.x);
+    }
+
+    //get release power
+    public double getReleasePower(Rectangle sling, Point releasePoint ) {
+        Point ref = getReferencePoint(sling);
+        double mag = Math.sqrt(Math.pow(ref.x - releasePoint.x,2) + Math.pow(ref.y - releasePoint.y,2));
+        return mag / STRETCH / getSceneScale(sling);
     }
     
     // predicts a trajectory
