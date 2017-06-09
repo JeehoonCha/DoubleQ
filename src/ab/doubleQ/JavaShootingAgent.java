@@ -258,10 +258,12 @@ public class JavaShootingAgent {
             this.power = power;
         }
         public double getAngle() {
-            return this.angle * 200 / Math.PI;
+            //return (int) this.angle * 200 / Math.PI;
+	    return this.angle;
         }
         public double getPower() {
-            return this.power * 100;
+            //return (int) this.power * 50;
+	    return this.power;
         }
     }
 
@@ -271,12 +273,74 @@ public class JavaShootingAgent {
         ABObject targetPig = targetPigs.get(randomGenerator.nextInt(targetPigs.size()));
         Point targetPoint = targetPig.getCenter();
 
-        ArrayList<Point> releasePoints = tp.estimateLaunchPoint(sling, targetPoint);
-        Point releasePoint = releasePoints.get(randomGenerator.nextInt(releasePoints.size()));
+	// estimate the trajectory
+	ArrayList<Point> pts = tp.estimateLaunchPoint(sling, targetPoint);
 
-        System.out.println("targetPigs.size()=" + targetPigs.size());
+	Point releasePoint = null;
+	// do a high shot when entering a level to find an accurate velocity
+	if (pts.size() > 1){
+	    releasePoint = pts.get(1);
+	}
+	else if (pts.size() == 1){
+	    releasePoint = pts.get(0);
+	}
+	else if (pts.size() == 2){
+	    // randomly choose between the trajectories, with a 1 in
+	    // 6 chance of choosing the high one
+	    if (randomGenerator.nextInt(6) == 0)
+		releasePoint = pts.get(1);
+	    else
+		releasePoint = pts.get(0);
+	}
+	else{
+	    if(pts.isEmpty()){
+		System.out.println("No release point found for the target");
+		System.out.println("Try a shot with 45 degree");
+		releasePoint = tp.findReleasePoint(sling, Math.PI/4);
+	    }
+	}
 
-        return new ShootInfo(tp.getReleaseAngle(sling, releasePoint),tp.getReleasePower(sling, releasePoint));
+	 // Get the reference point
+	Point refPoint = tp.getReferencePoint(sling);
+	//Calculate the tapping time according the bird type
+	int dx = 0;
+	int dy = 0;
+	Shot shot = new Shot();
+	double releaseAngle = 0;
+	if (releasePoint != null) {
+	    releaseAngle = tp.getReleaseAngle(sling,releasePoint);
+	    System.out.println("Release Point: " + releasePoint);
+	    System.out.println("Release Angle: " + Math.toDegrees(releaseAngle));
+
+	    int tapInterval = 0;
+	    int tapTime = tp.getTapTime(sling, releasePoint, targetPoint, tapInterval);
+	    dx = (int)releasePoint.getX() - refPoint.x;
+	    //power = (double)releasePoint.getX() - (double)refPoint.x;
+	    dy = (int)releasePoint.getY() - refPoint.y;
+	    shot = new Shot(refPoint.x, refPoint.y, dx, dy, 0, tapTime);
+	    System.out.println("shot:" + shot);
+	}
+	else{
+	    System.err.println("No Release Point Found");
+	}
+	double power = tp.getReleasePower(sling, targetPoint) / 490.0 * 100.0;
+	double angle = Math.toDegrees(releaseAngle);
+	System.out.println("Release Angle: " + Math.toDegrees(releaseAngle));
+	System.out.println("Release Power: " + power);
+
+	System.out.println("Release dx: " + dx  + "dy:" + dy);
+
+	return new ShootInfo((double) angle,(double) power);
+        //ArrayList<Point> releasePo0ints = tp.estimateLaunchPoint(sling, targetPoint);
+        //Point releasePoint = releasePoints.get(randomGenerator.nextInt(releasePoints.size()));
+
+        //System.out.println("targetPigs.size()=" + targetPigs.size());
+	//System.out.println("sling=" + sling);
+	//System.out.println("targetPig_point=" + targetPoint);
+	//System.out.println("angle=" + tp.getReleaseAngle(sling, releasePoint));
+	//System.out.println("power=" + tp.getReleasePower(sling, releasePoint));
+
+        //return new ShootInfo(tp.getReleaseAngle(sling, releasePoint),tp.getReleasePower(sling, releasePoint));
     }
 
     private void setSlingReady() {
