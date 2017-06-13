@@ -277,15 +277,14 @@ public class TrajectoryPlanner {
         _a = -0.5 / (_ux * _ux);
         _b = _uy / _ux;
         
-        
         // work out points of the trajectory
-	    _trajectory = new ArrayList<Point>();
+	_trajectory = new ArrayList<Point>();
         for (int x = 0; x < X_MAX; x++) {
             double xn = x / _scale;
             int y = _ref.y - (int)((_a * xn * xn + _b * xn) * _scale);
             _trajectory.add(new Point(x + _ref.x, y));
         }
-        
+	
         // turn on the setTraj flag
         _trajSet = true;
     }
@@ -364,14 +363,33 @@ public class TrajectoryPlanner {
     public double getReleaseAngle(Rectangle sling, Point releasePoint )
     {
         Point ref = getReferencePoint(sling);
-        return -Math.atan2(ref.y - releasePoint.y, ref.x - releasePoint.x);
+
+	return -Math.atan2(ref.y - releasePoint.y, ref.x - releasePoint.x);
+	//double theta = -Math.atan2(ref.y - releasePoint.y, ref.x - releasePoint.x);
+	//return launchToActual(theta);
     }
 
     //get release power
+    //public double getReleasePower(Rectangle sling, Point releasePoint ) {
+    //    Point ref = getReferencePoint(sling);
+    //    double mag = Math.sqrt(Math.pow(ref.x - releasePoint.x,2) + Math.pow(ref.y - releasePoint.y,2));
+    //    return mag / STRETCH / getSceneScale(sling);
+    //}
     public double getReleasePower(Rectangle sling, Point releasePoint ) {
         Point ref = getReferencePoint(sling);
+
+	// find the launch angle
+	//double theta;
+	//theta = -Math.atan2(releasePoint.y - ref.y, ref.x - releasePoint.x);
+        //theta = launchToActual(theta);
+        
+        // work out initial velocities and coefficients of the parabola
+        //double velocity = getVelocity(theta);
+	
         double mag = Math.sqrt(Math.pow(ref.x - releasePoint.x,2) + Math.pow(ref.y - releasePoint.y,2));
-        return mag / STRETCH / getSceneScale(sling);
+        //return mag / STRETCH / getSceneScale(sling);
+	//return velocity * _scale;
+	return mag;
     }
     
     // predicts a trajectory
