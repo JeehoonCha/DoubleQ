@@ -123,6 +123,11 @@ public class JavaShootingAgent {
     }
 
     public GameStateExtractor.GameState getGameState() {
+        try {
+            Thread.sleep(20000);
+        } catch (InterruptedException e) {
+            return GameState.LOST;
+        }
         return actionRobot.getState();
     }
     public void goFromMainMenuToLevelSelection() {
@@ -169,6 +174,9 @@ public class JavaShootingAgent {
 
     public Observation shoot(int angle, int tabInterval) {
         cshoot(angle, tabInterval);
+        while(isStopped()) {
+            // do nothing
+        }
 
         int curScore = StateUtil.getScore(ActionRobot.proxy);
         int reward = curScore - prevScore;
@@ -196,6 +204,21 @@ public class JavaShootingAgent {
             prevState = curState;
         }
         return observation;
+    }
+
+    public boolean isStopped() {
+        boolean isStopped = false;
+        try {
+            byte[] before_screen = getScreen();
+            Thread.sleep(5000);
+            byte[] after_screen = getScreen();
+            isStopped = Arrays.equals(before_screen, after_screen);
+        } catch (InterruptedException e) {
+            // do nothing
+        }
+
+
+        return isStopped;
     }
 
     private void cshoot(int angle, int tabInterval) {
@@ -232,12 +255,22 @@ public class JavaShootingAgent {
 
     class ShootInfo {
         double angle;
-        public ShootInfo(double angle) {
+        boolean isLowAngle;
+        boolean isHighAngle;
+        public ShootInfo(double angle, boolean isLowAngle, boolean isHighAngle) {
             this.angle = angle;
+            this.isLowAngle = isLowAngle;
+            this.isHighAngle = isHighAngle;
         }
         public double getAngle() {
             //return (int) this.angle * 200 / Math.PI;
     	    return this.angle;
+        }
+        public boolean isLowAngle() {
+            return this.isLowAngle;
+        }
+        public boolean isHighAngle() {
+            return this.isHighAngle;
         }
     }
 
@@ -251,15 +284,24 @@ public class JavaShootingAgent {
         ArrayList<Point> releasePoints = tp.estimateLaunchPoint(sling, targetPoint);
 
         Point releasePoint = null;
+        boolean isLowAngle = false;
+        boolean isHighAngle = false;
         if (releasePoints.size() == 0) {
             releasePoint = tp.findReleasePoint(sling, Math.PI/4, 100);
         } else {
-            releasePoint = releasePoints.get(randomGenerator.nextInt(releasePoints.size()));
+            if (randomGenerator.nextInt(5) != 0) {
+                releasePoint = releasePoints.get(0);
+                isLowAngle = true;
+            } else {
+                int nextInt = randomGenerator.nextInt(releasePoints.size());
+                releasePoint = releasePoints.get(nextInt);
+                isHighAngle = (nextInt + 1) == releasePoints.size();
+            }
         }
          // Get the reference point
         double angle = Math.toDegrees(tp.getReleaseAngle(sling, releasePoint));
-        System.out.println("Release Angle: " + angle);
-        return new ShootInfo(angle);
+        System.out.println("Release Angle: " + angle + ", isLowAngle: " + isLowAngle + ", isHighAngle: " + isHighAngle);
+        return new ShootInfo(angle, isLowAngle, isHighAngle);
     }
 
     private void setSlingReady() {
