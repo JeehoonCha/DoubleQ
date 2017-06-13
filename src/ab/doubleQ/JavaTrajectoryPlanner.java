@@ -269,10 +269,9 @@ public class JavaTrajectoryPlanner {
     public double getReleaseAngle(Rectangle sling, Point releasePoint )
     {
         Point ref = getReferencePoint(sling);
-        
         return -Math.atan2(ref.y - releasePoint.y, ref.x - releasePoint.x);
     }
-    
+
     // predicts a trajectory
     public List<Point> predictTrajectory(Rectangle slingshot, Point launchPoint) {
         setTrajectory(slingshot, launchPoint);

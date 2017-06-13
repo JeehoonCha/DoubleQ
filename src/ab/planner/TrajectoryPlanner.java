@@ -351,6 +351,14 @@ public class TrajectoryPlanner {
         
         return release;
     }
+
+    private double fromVelocityToMagnitude(Rectangle sling, double velocity) {
+        return getSceneScale(sling) * STRETCH * velocity;
+    }
+
+    private double fromMagnitudeToVelocity(Rectangle sling, double mag) {
+        return mag / STRETCH / getSceneScale(sling);
+    }
     
     // find the reference point given the sling
     public Point getReferencePoint(Rectangle sling)
@@ -360,36 +368,17 @@ public class TrajectoryPlanner {
     }
     
     //get release angle 
-    public double getReleaseAngle(Rectangle sling, Point releasePoint )
-    {
+    public double getReleaseAngle(Rectangle sling, Point releasePoint ) {
         Point ref = getReferencePoint(sling);
-
-	return -Math.atan2(ref.y - releasePoint.y, ref.x - releasePoint.x);
-	//double theta = -Math.atan2(ref.y - releasePoint.y, ref.x - releasePoint.x);
-	//return launchToActual(theta);
+	    return -Math.atan2(ref.y - releasePoint.y, ref.x - releasePoint.x);
     }
 
-    //get release power
-    //public double getReleasePower(Rectangle sling, Point releasePoint ) {
-    //    Point ref = getReferencePoint(sling);
-    //    double mag = Math.sqrt(Math.pow(ref.x - releasePoint.x,2) + Math.pow(ref.y - releasePoint.y,2));
-    //    return mag / STRETCH / getSceneScale(sling);
     //}
-    public double getReleasePower(Rectangle sling, Point releasePoint ) {
+    public double getReleasePower(Rectangle sling, Point releasePoint) {
         Point ref = getReferencePoint(sling);
-
-	// find the launch angle
-	//double theta;
-	//theta = -Math.atan2(releasePoint.y - ref.y, ref.x - releasePoint.x);
-        //theta = launchToActual(theta);
-        
-        // work out initial velocities and coefficients of the parabola
-        //double velocity = getVelocity(theta);
-	
         double mag = Math.sqrt(Math.pow(ref.x - releasePoint.x,2) + Math.pow(ref.y - releasePoint.y,2));
-        //return mag / STRETCH / getSceneScale(sling);
-	//return velocity * _scale;
-	return mag;
+    //    return mag / STRETCH / getSceneScale(sling);
+	    return mag;
     }
     
     // predicts a trajectory

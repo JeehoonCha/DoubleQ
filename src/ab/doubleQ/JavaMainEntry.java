@@ -2,6 +2,8 @@ package ab.doubleQ;
 
 import py4j.GatewayServer;
 
+import java.net.*;
+
 /*****************************************************************************
  ** ANGRYBIRDS AI AGENT FRAMEWORK
  ** Copyright (c) 2014, XiaoYu (Gary) Ge, Jochen Renz,Stephen Gould,
@@ -16,7 +18,22 @@ public class JavaMainEntry {
 	public static void main(String args[])
 	{
 		JavaShootingAgent javaAgent = new JavaShootingAgent();
-		GatewayServer server = new GatewayServer(javaAgent);
-		server.start();
+		try{
+			InetAddress host = Inet6Address.getLocalHost();
+			GatewayServer server = new GatewayServer(
+					javaAgent,
+					GatewayServer.DEFAULT_PORT,
+					GatewayServer.DEFAULT_PYTHON_PORT,
+					host,
+					null,
+					0,
+					0,
+					null);
+			server.start();
+			System.out.println("GatewayServer for " + javaAgent.getClass().getName() + " started on " + host.toString()
+					+ ":" + String.valueOf(GatewayServer.DEFAULT_PORT));
+		} catch (UnknownHostException e) {
+		}
+
 	}
 }

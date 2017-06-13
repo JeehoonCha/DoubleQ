@@ -18,8 +18,6 @@ import java.nio.IntBuffer;
 import java.util.*;
 import java.util.List;
 
-import py4j.*;
-
 /**
  * Created by jeehoon on 27/04/2017.
  */
@@ -69,19 +67,14 @@ public class JavaShootingAgent {
 
     public class Action implements Serializable {
         private int angle;
-        private int power;
         private int tabInterval;
 
-        public Action(int angle, int power, int tabInterval) {
+        public Action(int angle, int tabInterval) {
             this.angle = angle;
-            this.power = power;
             this.tabInterval = tabInterval;
         }
         public int getAngle() {
             return angle;
-        }
-        public int getPower() {
-            return power;
         }
         public int getTabInterval() {
             return tabInterval;
@@ -175,38 +168,28 @@ public class JavaShootingAgent {
         return initNumBirds;
     }
 
-    public Observation shoot(int angle, int power, int tabInterval) {
-        cshoot(angle, power, tabInterval);
+    public Observation shoot(int angle, int tabInterval) {
+        cshoot(angle, tabInterval);
 
         int curScore = StateUtil.getScore(ActionRobot.proxy);
         int reward = curScore - prevScore;
-	//System.out.println(String.format("curScore=%d",curScore));
-	//System.out.println(String.format("prevScore=%d", prevScore));
-	//System.out.println(String.format("reward=%d", reward));
-	
+
         prevScore = curScore;
 
         int numPigs = getNumPigs();
         int numBirds = getNumBirds();
         boolean isTerminal = (numPigs == 0) || (numBirds == 0) ;
-	//boolean isTerminal = (numPigs == 0) || (numBirds == 0) || (actionRobot.getState() == GameStateExtractor.GameState.WON);
 
-	//State state = actionRobot.getState();
-        Action curAction = new Action(angle, power, tabInterval);
-        //Observation observation = new Observation(getScreen(), reward, curAction, isTerminal);
-	
-	//State state = new State(prevState.getActionSequence().toArray(actions));
-	//Observation observation = new Observation(state,getScreen(), reward, curAction, isTerminal);
-	Observation observation = new Observation(getScreen(), reward, curAction, isTerminal);
+        Action curAction = new Action(angle, tabInterval);
+        Observation observation = new Observation(getScreen(), reward, curAction, isTerminal);
 
-	boolean isStateGame = (actionRobot.getState() == GameState.WON);
-        System.out.println(String.format("isTerminal=%s",isTerminal));
-	
-	//System.out.println(String.format("isStateGame=%s", isStateGame));
-	System.out.println(actionRobot.getState());
-	
-	curScore = StateUtil.getScore(ActionRobot.proxy);
-	System.out.println(String.format("curScore=%d",curScore));
+        boolean isStateGame = (actionRobot.getState() == GameState.WON);
+            System.out.println(String.format("isTerminal=%s",isTerminal));
+
+        System.out.println(actionRobot.getState());
+
+        curScore = StateUtil.getScore(ActionRobot.proxy);
+        System.out.println(String.format("curScore=%d",curScore));
 		
         if (reward > 0) {
             Action[] actions = new Action[prevState.getActionSequence().size()];
@@ -217,12 +200,11 @@ public class JavaShootingAgent {
         return observation;
     }
 
-    private void cshoot(int angle, int power, int tabInterval) {
+    private void cshoot(int angle, int tabInterval) {
         setSlingReady();
         Point releasePoint = trajectoryPlanner.findReleasePoint(
                 sling,
-                angle / (double) 100 * Math.PI / (double) 2,
-                power / (double) 100);
+                angle / (double) 100 * Math.PI / (double) 2);
         Point refPoint = trajectoryPlanner.getReferencePoint(sling);
         int dx = (int) releasePoint.getX() - refPoint.x;
         int dy = (int) releasePoint.getY() - refPoint.y;
@@ -252,18 +234,12 @@ public class JavaShootingAgent {
 
     class ShootInfo {
         double angle;
-        double power;
-        public ShootInfo(double angle, double power) {
+        public ShootInfo(double angle) {
             this.angle = angle;
-            this.power = power;
         }
         public double getAngle() {
             //return (int) this.angle * 200 / Math.PI;
-	    return this.angle;
-        }
-        public double getPower() {
-            //return (int) this.power * 50;
-	    return this.power;
+    	    return this.angle;
         }
     }
 
@@ -273,74 +249,19 @@ public class JavaShootingAgent {
         ABObject targetPig = targetPigs.get(randomGenerator.nextInt(targetPigs.size()));
         Point targetPoint = targetPig.getCenter();
 
-	// estimate the trajectory
-	ArrayList<Point> pts = tp.estimateLaunchPoint(sling, targetPoint);
+        // estimate the trajectory
+        ArrayList<Point> releasePoints = tp.estimateLaunchPoint(sling, targetPoint);
 
-	Point releasePoint = null;
-	// do a high shot when entering a level to find an accurate velocity
-	if (pts.size() > 1){
-	    releasePoint = pts.get(1);
-	}
-	else if (pts.size() == 1){
-	    releasePoint = pts.get(0);
-	}
-	else if (pts.size() == 2){
-	    // randomly choose between the trajectories, with a 1 in
-	    // 6 chance of choosing the high one
-	    if (randomGenerator.nextInt(6) == 0)
-		releasePoint = pts.get(1);
-	    else
-		releasePoint = pts.get(0);
-	}
-	else{
-	    if(pts.isEmpty()){
-		System.out.println("No release point found for the target");
-		System.out.println("Try a shot with 45 degree");
-		releasePoint = tp.findReleasePoint(sling, Math.PI/4);
-	    }
-	}
-
-	 // Get the reference point
-	Point refPoint = tp.getReferencePoint(sling);
-	//Calculate the tapping time according the bird type
-	int dx = 0;
-	int dy = 0;
-	Shot shot = new Shot();
-	double releaseAngle = 0;
-	if (releasePoint != null) {
-	    releaseAngle = tp.getReleaseAngle(sling,releasePoint);
-	    System.out.println("Release Point: " + releasePoint);
-	    System.out.println("Release Angle: " + Math.toDegrees(releaseAngle));
-
-	    int tapInterval = 0;
-	    int tapTime = tp.getTapTime(sling, releasePoint, targetPoint, tapInterval);
-	    dx = (int)releasePoint.getX() - refPoint.x;
-	    //power = (double)releasePoint.getX() - (double)refPoint.x;
-	    dy = (int)releasePoint.getY() - refPoint.y;
-	    shot = new Shot(refPoint.x, refPoint.y, dx, dy, 0, tapTime);
-	    System.out.println("shot:" + shot);
-	}
-	else{
-	    System.err.println("No Release Point Found");
-	}
-	double power = tp.getReleasePower(sling, targetPoint) / 490.0 * 100.0;
-	double angle = Math.toDegrees(releaseAngle);
-	System.out.println("Release Angle: " + Math.toDegrees(releaseAngle));
-	System.out.println("Release Power: " + power);
-
-	System.out.println("Release dx: " + dx  + "dy:" + dy);
-
-	return new ShootInfo((double) angle,(double) power);
-        //ArrayList<Point> releasePo0ints = tp.estimateLaunchPoint(sling, targetPoint);
-        //Point releasePoint = releasePoints.get(randomGenerator.nextInt(releasePoints.size()));
-
-        //System.out.println("targetPigs.size()=" + targetPigs.size());
-	//System.out.println("sling=" + sling);
-	//System.out.println("targetPig_point=" + targetPoint);
-	//System.out.println("angle=" + tp.getReleaseAngle(sling, releasePoint));
-	//System.out.println("power=" + tp.getReleasePower(sling, releasePoint));
-
-        //return new ShootInfo(tp.getReleaseAngle(sling, releasePoint),tp.getReleasePower(sling, releasePoint));
+        Point releasePoint = null;
+        if (releasePoints.size() == 0) {
+            releasePoint = tp.findReleasePoint(sling, Math.PI/4, 100);
+        } else {
+            releasePoint = releasePoints.get(randomGenerator.nextInt(releasePoints.size()));
+        }
+         // Get the reference point
+        double angle = Math.toDegrees(tp.getReleaseAngle(sling, releasePoint));
+        System.out.println("Release Angle: " + angle);
+        return new ShootInfo(angle);
     }
 
     private void setSlingReady() {
