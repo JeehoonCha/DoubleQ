@@ -125,7 +125,6 @@ public class JavaShootingAgent {
     public GameStateExtractor.GameState getGameState() {
         return actionRobot.getState();
     }
-
     public void goFromMainMenuToLevelSelection() {
         ActionRobot.GoFromMainMenuToLevelSelection();
     }
@@ -173,7 +172,6 @@ public class JavaShootingAgent {
 
         int curScore = StateUtil.getScore(ActionRobot.proxy);
         int reward = curScore - prevScore;
-
         prevScore = curScore;
 
         int numPigs = getNumPigs();
